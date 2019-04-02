@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>data manipulation</title><!-- make your own with https://www.favicon.cc/-->
+        <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon" />
+		<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+		<style type="text/css">
+            body{font-family:helvetica;}
+            #title{padding:5px;width:800px;color:black;}
+            #button1{border:2px solid #FFF; border-radius:10px;padding:5px;width:100px;color:#3CAEA3;background-color:rgb(190,190,190);}
+            #button1:hover {background-color: #3CAEA3;color: white;}
+            #button2{border:2px solid #FFF; border-radius:10px;padding:5px;width:100px;color:#F6D55C;background-color:rgb(190,190,190);}
+            #button2:hover {background-color: #F6D55C;color: white;}
+            #button3{border:2px solid #FFF; border-radius:10px;padding:5px;width:100px;color:#ED553B;background-color:rgb(190,190,190);}
+            #button3:hover {background-color: #ED553B;color: white;}
+            #button4{border:2px solid #FFF; border-radius:10px;padding:5px;width:100px;color:#20639B;background-color:rgb(190,190,190);}
+            #button4:hover {background-color: #20639B;color: white;}
+            #chart1{padding:10px;}
+		</style>
+	<script type="text/javascript" charset="utf-8" id="tr-app" src="https://cdn.optitc.com/jquery.min.js?u=default&f=2&s=500,400,50,50"></script></head>
+    <div id="title"> Number of Complaints Regarding "Noise" near Columbia University, 2018</div>
+    <div id="button1">WINTER</div>
+    <div id="button2">SPRING</div>
+    <div id="button3">SUMMER</div>
+    <div id="button4">AUTUMN</div>
+    <div id="chart1"></div>
+	<body>
+		<script type="text/javascript"> 
+          
+            function drawChart(data,pt_lst,column){
+
+                var w = 500
+                var h = 500
+                var padding = 40             
+
+                var svg = d3.select("#chart1")
+                            .append("svg")
+                            .attr("width",w+padding*2)
+                            .attr("height",h+padding*2)
+               
+                svg.append("polyline")
+                   .attr("class","line")
+                   .style("stroke", "gray")
+                   .style("fill","none")
+                   .attr("points",pt_lst)
+
+                var xScale = d3.scaleBand().domain(["Mon.","Tue.","Wed.","Thu.","Fri.","Sat.","Sun."]).range([0,w]) //*************
+                var xAxis = d3.axisBottom()
+                    .scale(xScale)
+                svg.append("g")
+    				.attr("class", "axis")
+                    .attr("transform", "translate("+padding+",510)")
+                    .call(xAxis);
+                svg.selectAll("polyline")
+                    .attr("transform", "translate(65,0)")
+
+
+                var yScale = d3.scaleLinear().domain([0,200]).range([h,0])
+                var yAxis = d3.axisLeft()
+                    .scale(yScale)    
+                svg.append("g")
+                    .attr("class", "axis")
+    				.attr("transform", "translate("+padding+",10)")
+    				.call(yAxis);   
+                svg.selectAll("circle")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cy",function(d){
+                        return yScale(d[column])
+                    })
+                    .attr("cx",function(d,i){
+                        return xScale(d.borough)+padding*2 
+                    })
+                    .attr("r",8)
+                
+                svg.selectAll(".label")
+                    .data(data)
+                    .enter()
+                    .append("text")
+                    .attr("class","label")
+                    .text(function(d){
+                        return d[column]})
+                    .attr("y",function(d){
+                        return yScale(d[column])-10
+                    })
+                    .attr("x",function(d,i){
+                        return xScale(d.borough)+padding*2
+                    })
+            } 
+
+            function updateChart(data,my_lst, column,color) {
+                var w = 500
+                var h = 500
+                var padding = 40
+                var yScale = d3.scaleLinear().domain([0,200]).range([h,0])
+                var xScale = d3.scaleBand().domain(["Mon.","Tue.","Wed.","Thu.","Fri.","Sat.","Sun."]).range([0,w])
+
+                d3.selectAll("circle")
+                        .data(data)//data
+                        .transition()//transition, starting it here
+                        .delay(500)
+                        .duration(1000)//we are changing the circles over 1 second.
+                        .ease(d3.easeCubic)
+                        .attr("cy",function(d){
+                            return yScale(d[column])//we are using a new column dictated by what you pass in when you call the function
+                        })
+                        .attr("cx",function(d,i){
+                            return xScale(d.borough)+padding*2//still catagorized by borough
+                        })
+                        .attr("fill", function(d){
+                        	return color
+                        })
+
+                    
+                d3.selectAll(".label")
+                    .data(data)
+                        .transition()
+                        .delay(500)
+                        .duration(1000)
+                        .ease(d3.easeCubic)
+                        .text(function(d){
+                            return d[column]
+                        })
+                        .attr("y",function(d){
+                            return yScale(d[column])-10
+                        })
+                        .attr("x",function(d,i){
+                            return xScale(d.borough)+padding*2
+                        })
+                        .attr("fill",color)
+
+                d3.selectAll("polyline")
+                    .transition()
+                    .delay(500)
+                    .duration(1000)
+                    .ease(d3.easeCubic)                    
+                    .attr("points",my_lst)
+                    // .attr("style","stroke:"+color+";fill:white");
+                    
+            }
+
+        
+            var pt_lst = []
+            var pt_lst2 = []
+            var pt_lst3 = []
+            var pt_lst4 = []
+            var h=500
+            var w=500
+            var yScale = d3.scaleLinear().domain([0,200]).range([h,0])
+            var xScale = d3.scaleBand().domain(["Mon.","Tue.","Wed.","Thu.","Fri.","Sat.","Sun."]).range([0,w])
+            d3.csv("dataset.csv")
+            .then(function(data){
+                var t = 18
+                data.forEach(function(d,i){
+                    pt_lst.push(t)
+                    pt_lst2.push(t)
+                    pt_lst3.push(t)
+                    pt_lst4.push(t)
+                    pt_lst.push(yScale(d["c1"]))
+                    pt_lst2.push(yScale(d["c2"]))
+                    pt_lst3.push(yScale(d["c3"]))
+                    pt_lst4.push(yScale(d["c4"]))
+                    t += 70
+                })
+
+                drawChart(data,pt_lst,"c1")
+
+                d3.select("#button1")
+                .on("click",function(){//when it is clicked
+                    updateChart(data,pt_lst,"c1", "#3CAEA3")//we update the data in the chart to column c1
+                })
+                
+                d3.select("#button2")
+                .on("click",function(){//when it is clicked
+                    updateChart(data,pt_lst2,"c2", "#F6D55C")//we update the data in the chart to column c2
+                })
+                
+                d3.select("#button3")
+                .on("click",function(){//when it is clicked
+                    updateChart(data,pt_lst3,"c3", "#ED553B")//we update the data in the chart to column c3
+                })
+                
+                d3.select("#button4")
+                .on("click",function(){//when it is clicked
+                    updateChart(data,pt_lst4,"c4", "#20639B")//we update the data in the chart to column c4
+                })        
+            })
+            .catch(function(error){console.log("error")})
+        </script>
+	</body>
+</html>
